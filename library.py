@@ -9,7 +9,6 @@ import sklearn
 
 sklearn.set_config(transform_output="pandas")  # Pass pandas tables through pipeline instead of numpy matrices
 
-
 class CustomMappingTransformer(BaseEstimator, TransformerMixin):
     """
     A transformer that maps values in a specified column according to a provided dictionary.
@@ -25,24 +24,26 @@ class CustomMappingTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.transform expected DataFrame but got {type(X)}."
-        assert self.mapping_column in X.columns, f"{self.__class__.__name__}.transform unknown column '{self.mapping_column}'."
+        assert isinstance(X, pd.core.frame.DataFrame), f'{self.__class__.__name__}.transform expected Dataframe but got {type(X)} instead.'
+        assert self.mapping_column in X.columns.to_list(), f'{self.__class__.__name__}.transform unknown column "{self.mapping_column}"'  #column legit?
+        warnings.filterwarnings('ignore', message='.*downcasting.*')  #squash warning in replace method below
 
-        column_set = set(X[self.mapping_column].unique())
-        keys_not_found = set(self.mapping_dict.keys()) - column_set
-        keys_absent = column_set - set(self.mapping_dict.keys())
-
+        column_set: Set[Any] = set(X[self.mapping_column].unique())        
+        keys_not_found: Set[Any] = set(self.mapping_dict.keys()) - column_set
         if keys_not_found:
             print(f"\nWarning: {self.__class__.__name__}[{self.mapping_column}] does not contain these keys as values: {keys_not_found}\n")
+        
+        keys_absent: Set[Any] = column_set - set(self.mapping_dict.keys())
         if keys_absent:
             print(f"\nWarning: {self.__class__.__name__}[{self.mapping_column}] does not contain keys for these values: {keys_absent}\n")
 
-        X_ = X.copy()
+        X_: pd.DataFrame = X.copy()
         X_[self.mapping_column] = X_[self.mapping_column].replace(self.mapping_dict)
         return X_
 
     def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> pd.DataFrame:
-        return self.transform(X)
+        result: pd.DataFrame = self.transform(X)
+        return result
 
 
 class CustomOHETransformer(BaseEstimator, TransformerMixin):
