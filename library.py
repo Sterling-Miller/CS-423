@@ -184,6 +184,11 @@ class CustomOHETransformer(BaseEstimator, TransformerMixin):
             drop_first=False,
             dtype=int
         )
+    
+    def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> pd.DataFrame:
+        #self.fit(X,y)  #commented out to avoid warning message in fit
+        result: pd.DataFrame = self.transform(X)
+        return result
 
 
 class CustomDropColumnsTransformer(BaseEstimator, TransformerMixin):
@@ -215,11 +220,16 @@ class CustomDropColumnsTransformer(BaseEstimator, TransformerMixin):
             return X.drop(columns=self.column_list, errors='ignore')
         else:
             return X[self.column_list]
+        
+    def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> pd.DataFrame:
+        #self.fit(X,y)  #commented out to avoid warning message in fit
+        result: pd.DataFrame = self.transform(X)
+        return result
 
 titanic_transformer = Pipeline(steps=[
     ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
     ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
-    ('ohe', CustomOHETransformer(target_column='Joined')),
+    ('joined', CustomOHETransformer(target_column='Joined')),
     ], verbose=True)
 
 customer_transformer = Pipeline(steps=[
