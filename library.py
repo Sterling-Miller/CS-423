@@ -414,10 +414,7 @@ titanic_transformer = Pipeline(steps=[
     ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
     ('joined', CustomOHETransformer(target_column='Joined')),
     ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
-    ('age', CustomSigma3Transformer(target_column='Age')),
-    ('pclass', CustomMappingTransformer('Pclass', {'1st': 0, '2nd': 1, '3rd': 2})),
-    ('sibsp', CustomMappingTransformer('SibSp', {0: 0, 1: 1, 2: 2, 3: 3})),
-    ('parch', CustomMappingTransformer('Parch', {0: 0, 1: 1, 2: 2, 3: 3})),
+    ('age', CustomRobustTransformer(target_column='Age')),
     ('fare2', CustomRobustTransformer(target_column='Fare')),
     ], verbose=True)
 
