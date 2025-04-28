@@ -370,7 +370,7 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.fit expected DataFrame but got {type(X)}."
         assert self.target_column in X.columns, f"{self.__class__.__name__}.fit unknown column '{self.target_column}'."
-        assert X[self.target_column].dtype in [np.float64, np.float32], f"{self.__class__.__name__}.fit expected float column but got {X[self.target_column].dtype} instead."
+        assert X[self.target_column].dtype in [np.float64, np.float32, np.int64], f"{self.__class__.__name__}.fit expected float column but got {X[self.target_column].dtype} instead."
 
         Q1 = X[self.target_column].quantile(0.25)
         Q3 = X[self.target_column].quantile(0.75)
