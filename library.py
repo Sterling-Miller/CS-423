@@ -1,6 +1,7 @@
 from __future__ import annotations  # must be first line in your library!
 from typing import Dict, Any, Optional, Union, List, Set, Hashable, Literal, Tuple, Self, Iterable
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
