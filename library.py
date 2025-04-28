@@ -354,24 +354,6 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
         result: pd.DataFrame = self.transform(X)
         return result
 
-
-titanic_transformer = Pipeline(steps=[
-    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
-    ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
-    ('joined', CustomOHETransformer(target_column='Joined')),
-    ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
-    ], verbose=True)
-
-customer_transformer = Pipeline(steps=[
-    ('drop', CustomDropColumnsTransformer(['ID'], 'drop')),
-    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
-    ('experience', CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2})),
-    ('os', CustomOHETransformer(target_column='OS')),
-    ('isp', CustomOHETransformer(target_column='ISP')),
-    ('time spent', CustomTukeyTransformer('Time Spent', 'inner')),
-    ], verbose=True)
-
-
 class CustomRobustTransformer(BaseEstimator, TransformerMixin):
   """Applies robust scaling to a specified column in a pandas DataFrame.
     This transformer calculates the interquartile range (IQR) and median
@@ -427,3 +409,23 @@ class CustomRobustTransformer(BaseEstimator, TransformerMixin):
     result: pd.DataFrame = self.transform(X)
     return result
     
+titanic_transformer = Pipeline(steps=[
+    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+    ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
+    ('joined', CustomOHETransformer(target_column='Joined')),
+    ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
+    ('age', CustomSigma3Transformer(target_column='Age')),
+    ('pclass', CustomMappingTransformer('Pclass', {'1st': 0, '2nd': 1, '3rd': 2})),
+    ('sibsp', CustomMappingTransformer('SibSp', {0: 0, 1: 1, 2: 2, 3: 3})),
+    ('parch', CustomMappingTransformer('Parch', {0: 0, 1: 1, 2: 2, 3: 3})),
+    ('fare2', CustomRobustTransformer(target_column='Fare')),
+    ], verbose=True)
+
+customer_transformer = Pipeline(steps=[
+    ('drop', CustomDropColumnsTransformer(['ID'], 'drop')),
+    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+    ('experience', CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2})),
+    ('os', CustomOHETransformer(target_column='OS')),
+    ('isp', CustomOHETransformer(target_column='ISP')),
+    ('time spent', CustomTukeyTransformer('Time Spent', 'inner')),
+    ], verbose=True)
