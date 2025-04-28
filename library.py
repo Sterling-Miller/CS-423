@@ -410,12 +410,13 @@ class CustomRobustTransformer(BaseEstimator, TransformerMixin):
     return result
     
 titanic_transformer = Pipeline(steps=[
-    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
-    ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
-    ('joined', CustomOHETransformer(target_column='Joined')),
-    ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
-    ('age', CustomRobustTransformer(target_column='Age')),
-    ('fare2', CustomRobustTransformer(target_column='Fare')),
+    ('map_gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+    ('map_class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
+    ('ohe_joined', CustomOHETransformer(target_column='Joined')),
+    ('tukey_age', CustomTukeyTransformer(target_column='Age', fence='outer')),
+    ('tukey_fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
+    ('scale_age', CustomRobustTransformer(target_column='Age')),
+    ('scale_fare', CustomRobustTransformer(target_column='Fare')),
     ], verbose=True)
 
 customer_transformer = Pipeline(steps=[
