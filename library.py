@@ -6,6 +6,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
+from sklearn.metrics import f1_score
 import pandas as pd
 import numpy as np
 import warnings
