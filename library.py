@@ -710,3 +710,7 @@ customer_transformer = Pipeline(steps=[
     ('scale_time spent', CustomRobustTransformer(target_column='Time Spent')), #from 5
     ('impute', CustomKNNTransformer(n_neighbors=5)),
     ], verbose=True)
+
+### Best Spluts for Titanic and Customer datasets:
+titanic_variance_based_split = 107
+customer_variance_based_split = 113
