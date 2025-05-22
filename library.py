@@ -796,4 +796,3 @@ def sort_grid(grid):
   sorted_grid = dict(sorted(sorted_grid.items()))
 
   return sorted_grid
-
