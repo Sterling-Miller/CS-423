@@ -763,7 +763,7 @@ def threshold_results(thresh_list, actuals, predicted):
   result_df = result_df.round(2)
   return (result_df, result_df.style.highlight_max(color = 'pink', axis = 0).format(precision=2))
 
-def halving_search(model, grid, x_train, y_train, factor=2, min_resources="exhaust", scoring='roc_auc'):
+def halving_search(model, grid, x_train, y_train, factor=3, min_resources="exhaust", scoring='roc_auc'):
   halving_cv = HalvingGridSearchCV(
       model, grid,
       scoring=scoring,
