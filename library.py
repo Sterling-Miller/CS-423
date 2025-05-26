@@ -22,21 +22,27 @@ import types
 sklearn.set_config(transform_output="pandas") 
 
 # Import custom transformers and helper from separate modules:
-from custom_transformers import (
-    CustomMappingTransformer,
-    CustomOHETransformer,
-    CustomDropColumnsTransformer,
-    CustomPearsonTransformer,
-    CustomSigma3Transformer,
-    CustomTukeyTransformer,
-    CustomRobustTransformer,
-    CustomKNNTransformer,
+from ch2_transformers import (
+  CustomDropColumnsTransformer,
+  CustomMappingTransformer,
+  CustomOHETransformer
+)
+from ch3_transformer import CustomPearsonTransformer
+from ch4_transformers import (
+  CustomSigma3Transformer,
+  CustomTukeyTransformer
+)
+from ch5_transformer import CustomRobustTransformer
+from ch6_transformer import CustomKNNTransformer
+from ch7_transformer import (
     CustomTargetTransformer,
     find_random_state
 )
+from ch8_dataset_setup import dataset_setup
 
-# Pass pandas tables through pipeline instead of numpy matrices
-sklearn.set_config(transform_output="pandas") 
+### Best Splits for Titanic and Customer datasets:
+titanic_variance_based_split = 107
+customer_variance_based_split = 113
 
 ### Pipelines for Titanic and Customer datasets:
 titanic_transformer = Pipeline(steps=[
@@ -62,32 +68,7 @@ customer_transformer = Pipeline(steps=[
     ('impute', CustomKNNTransformer(n_neighbors=5)),
     ], verbose=True)
 
-### Best Splits for Titanic and Customer datasets:
-titanic_variance_based_split = 107
-customer_variance_based_split = 113
-
-def dataset_setup(original_table, label_column_name:str, the_transformer, rs, ts=.2):
-  # Separate features (X) and label (y)
-  X = original_table.drop(columns=[label_column_name])
-  y = original_table[label_column_name]
-
-  # Use stratify for classification splits, if y is appropriate
-  X_train, X_test, y_train, y_test = train_test_split(
-      X, y, test_size=ts, random_state=rs, shuffle=True, stratify=y
-  )
-
-  # Fit on training data and transform both train & test
-  X_train_transformed = the_transformer.fit_transform(X_train, y_train)
-  X_test_transformed = the_transformer.transform(X_test)
-
-  # Convert to NumPy arrays
-  x_train_numpy = X_train_transformed.to_numpy()
-  x_test_numpy = X_test_transformed.to_numpy()
-  y_train_numpy = y_train.to_numpy()
-  y_test_numpy = y_test.to_numpy()
-
-  return x_train_numpy, x_test_numpy, y_train_numpy, y_test_numpy
-
+### Dataset setup functions for Titanic and Customer datasets:
 def titanic_setup(titanic_table, transformer=titanic_transformer, rs=titanic_variance_based_split, ts=.2):
   return dataset_setup(titanic_table, 'Survived', transformer, rs, ts)
 
