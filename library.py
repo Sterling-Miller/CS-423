@@ -107,7 +107,15 @@ def threshold_results(thresh_list, actuals, predicted):
     result_df.loc[len(result_df)] = {'threshold':t, 'precision':precision, 'recall':recall, 'f1':f1, 'accuracy':accuracy, 'auc':auc}
 
   result_df = result_df.round(2)
-  return (result_df, result_df.style.highlight_max(color = 'pink', axis = 0).format(precision=2))
+
+  headers = {
+  "selector": "th:not(.index_name)",
+  "props": "background-color: #800000; color: white; text-align: center"
+  }
+  properties = {"border": "1px solid black", "width": "65px", "text-align": "center"}
+
+  fancy_df = result_df.style.highlight_max(color = 'pink', axis = 0).format(precision=2).set_properties(**properties).set_table_styles([headers])
+  return (result_df, fancy_df)
 
 def halving_search(model, grid, x_train, y_train, factor=3, min_resources="exhaust", scoring='roc_auc'):
   halving_cv = HalvingGridSearchCV(
