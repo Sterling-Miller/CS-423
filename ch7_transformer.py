@@ -12,14 +12,53 @@ class CustomTargetTransformer(BaseEstimator, TransformerMixin):
     """
     A target encoder that applies smoothing and returns np.nan for unseen categories.
 
-    Parameters:
-    -----------
-    col: name of column to encode.
+    This transformer encodes a categorical column by replacing each category with a smoothed
+    mean of the target variable, using the provided smoothing parameter. Unseen categories
+    during transform are encoded as np.nan.
+
+    Parameters
+    ----------
+    col : str
+        Name of the column to encode.
     smoothing : float, default=10.0
         Smoothing factor. Higher values give more weight to the global mean.
+
+    Attributes
+    ----------
+    col : str
+        The column to encode.
+    smoothing : float
+        The smoothing factor used in encoding.
+    global_mean_ : float
+        The global mean of the target variable, computed during fitting.
+    encoding_dict_ : dict
+        Dictionary mapping categories to their smoothed means.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'cat': ['A', 'B', 'A', 'C'], 'target': [1, 0, 1, 0]})
+    >>> enc = CustomTargetTransformer('cat', smoothing=5)
+    >>> enc.fit(df, df['target'])
+    >>> enc.transform(df)
+       cat  target
+    0  1.0       1
+    1  0.2       0
+    2  1.0       1
+    3  0.2       0
     """
 
-    def __init__(self, col: str, smoothing: float =10.0):
+    def __init__(self, col: str, smoothing: float = 10.0):
+        """
+        Initialize the CustomTargetTransformer.
+
+        Parameters
+        ----------
+        col : str
+            Name of the column to encode.
+        smoothing : float, default=10.0
+            Smoothing factor for target encoding.
+        """
         self.col = col
         self.smoothing = smoothing
         self.global_mean_ = None
@@ -29,29 +68,34 @@ class CustomTargetTransformer(BaseEstimator, TransformerMixin):
         """
         Fit the target encoder using training data.
 
-        Parameters:
-        -----------
-        X : array-like of shape (n_samples, n_features)
+        Parameters
+        ----------
+        X : pandas.DataFrame of shape (n_samples, n_features)
             Training data features.
-        y : array-like of shape (n_samples,)
+        y : Iterable of shape (n_samples,)
             Target values.
+
+        Returns
+        -------
+        Self
+            The fitted transformer.
         """
         assert isinstance(X, pd.core.frame.DataFrame), f'{self.__class__.__name__}.fit expected Dataframe but got {type(X)} instead.'
         assert self.col in X, f'{self.__class__.__name__}.fit column not in X: {self.col}. Actual columns: {X.columns}'
         assert isinstance(y, Iterable), f'{self.__class__.__name__}.fit expected Iterable but got {type(y)} instead.'
         assert len(X) == len(y), f'{self.__class__.__name__}.fit X and y must be same length but got {len(X)} and {len(y)} instead.'
 
-        #Create new df with just col and target - enables use of pandas methods below
+        # Create new df with just col and target - enables use of pandas methods below
         X_ = X[[self.col]]
-        target = self.col+'_target_'
+        target = self.col + '_target_'
         X_[target] = y
 
         # Calculate global mean
         self.global_mean_ = X_[target].mean()
 
         # Get counts and means
-        counts = X_[self.col].value_counts().to_dict()    #dictionary of unique values in the column col and their counts
-        means = X_[target].groupby(X_[self.col]).mean().to_dict() #dictionary of unique values in the column col and their means
+        counts = X_[self.col].value_counts().to_dict()
+        means = X_[target].groupby(X_[self.col]).mean().to_dict()
 
         # Calculate smoothed means
         smoothed_means = {}
@@ -71,33 +115,38 @@ class CustomTargetTransformer(BaseEstimator, TransformerMixin):
         Transform the data using the fitted target encoder.
         Unseen categories will be encoded as np.nan.
 
-        Parameters:
-        -----------
-        X : array-like of shape (n_samples, n_features)
+        Parameters
+        ----------
+        X : pandas.DataFrame of shape (n_samples, n_features)
             Input data to transform.
-        """
 
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with the encoded column.
+        """
         assert isinstance(X, pd.core.frame.DataFrame), f'{self.__class__.__name__}.transform expected Dataframe but got {type(X)} instead.'
         assert self.encoding_dict_, f'{self.__class__.__name__}.transform not fitted'
 
         X_ = X.copy()
-
-        # Map categories to smoothed means, naturally producing np.nan for unseen categories, i.e.,
-        # when map tries to look up a value in the dictionary and doesn't find the key, it automatically returns np.nan. That is what we want.
         X_[self.col] = X_[self.col].map(self.encoding_dict_)
-
         return X_
 
     def fit_transform(self, X, y):
         """
         Fit the target encoder and transform the input data.
 
-        Parameters:
-        -----------
-        X : array-like of shape (n_samples, n_features)
+        Parameters
+        ----------
+        X : pandas.DataFrame of shape (n_samples, n_features)
             Training data features.
-        y : array-like of shape (n_samples,)
+        y : Iterable of shape (n_samples,)
             Target values.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with the encoded column.
         """
         return self.fit(X, y).transform(X)
 
@@ -120,7 +169,7 @@ def find_random_state(
     ----------
     features_df : pd.DataFrame
         The feature dataset.
-    labels : Union[pd.Series, List]
+    labels : Iterable
         The corresponding labels for classification (can be a pandas Series or a Python list).
     transformer : TransformerMixin
         A scikit-learn compatible transformer for preprocessing.
@@ -139,14 +188,13 @@ def find_random_state(
     - If the train F1-score is below 0.1, that iteration is skipped.
     - A higher F1-score ratio (closer to 1) indicates better train-test consistency.
     """
-
     model = KNeighborsClassifier(n_neighbors=5)
     Var: List[float] = []  # Collect test_f1/train_f1 ratios
 
     for i in range(n):
         train_X, test_X, train_y, test_y = train_test_split(
             features_df, labels, test_size=0.2, shuffle=True,
-            random_state=i, stratify=labels  # Works with both lists and pd.Series
+            random_state=i, stratify=labels
         )
 
         # Apply transformation pipeline

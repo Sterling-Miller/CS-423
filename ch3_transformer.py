@@ -25,11 +25,34 @@ class CustomPearsonTransformer(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, threshold: float) -> None:
+        """
+        Initialize the transformer with a correlation threshold.
+
+        Parameters
+        ----------
+        threshold : float
+            The correlation threshold for identifying highly correlated features.
+        """
         assert isinstance(threshold, float), f"{self.__class__.__name__} expected a float for threshold but got {type(threshold)}."
         self.threshold = threshold
         self.correlated_columns = None  # Will be computed in fit
 
     def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+        """
+        Identify highly correlated columns in the input DataFrame.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            The input data to analyze for correlations.
+        y : Optional[Iterable], default=None
+            Ignored, exists for compatibility.
+
+        Returns
+        -------
+        Self
+            Returns self with correlated_columns attribute set.
+        """
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.fit expected DataFrame but got {type(X)}."
 
         # Compute the correlation matrix
@@ -42,6 +65,19 @@ class CustomPearsonTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Remove the highly correlated columns identified during fitting.
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+            The input data to transform.
+
+        Returns
+        -------
+        pd.DataFrame
+            The transformed DataFrame with correlated columns removed.
+        """
         assert self.correlated_columns is not None, f"{self.__class__.__name__}.transform called before fit."
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.transform expected DataFrame but got {type(X)}."
 

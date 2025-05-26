@@ -16,7 +16,7 @@ class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-    target_column : Hashable
+    target_column : str
         The name of the column to apply 3-sigma clipping on.
 
     Attributes
@@ -28,12 +28,35 @@ class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
     """
 
     def __init__(self, target_column: str) -> None:
+        """
+        Initialize the CustomSigma3Transformer.
+
+        Parameters
+        ----------
+        target_column : str
+            The name of the column to which 3-sigma clipping will be applied.
+        """
         assert isinstance(target_column, str), f"{self.__class__.__name__} expected a string but got {type(target_column)}."
         self.target_column = target_column
         self.high_wall: Optional[float] = None
         self.low_wall: Optional[float] = None
 
     def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+        """
+        Compute the lower and upper walls for the specified target column.
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+        y : Optional[Iterable], default=None
+            Ignored. Present for compatibility with scikit-learn interface.
+
+        Returns
+        -------
+        Self
+            The fitted transformer.
+        """
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.fit expected DataFrame but got {type(X)}."
         assert self.target_column in X.columns, f"{self.__class__.__name__}.fit unknown column '{self.target_column}'."
         assert X[self.target_column].dtype in [np.float64, np.float32], f"{self.__class__.__name__}.fit expected float column but got {X[self.target_column].dtype} instead."
@@ -42,6 +65,19 @@ class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
         return self
     
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Clip values in the target column to be within three standard deviations from the mean.
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input DataFrame with clipped values in the target column.
+        """
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.transform expected DataFrame but got {type(X)}."
         assert self.target_column in X.columns, f"{self.__class__.__name__}.transform unknown column '{self.target_column}'."
         assert self.high_wall is not None and self.low_wall is not None, f"{self.__class__.__name__}.transform high_wall and low_wall must be set by fit() first."
@@ -51,10 +87,26 @@ class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
         return X_
     
     def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> pd.DataFrame:
-        self.fit(X, y)  # Call the fit function
+        """
+        Fit to data, then transform it. Combines fit() and transform() for convenience.
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+        y : Optional[Iterable], default=None
+            Ignored. Present for compatibility with scikit-learn interface.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input DataFrame with clipped values in the target column.
+        """
+        self.fit(X, y)
         result: pd.DataFrame = self.transform(X)
         return result
-    
+
+
 class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
     """
     A transformer that applies Tukey's fences (inner or outer) to a specified column in a pandas DataFrame.
@@ -64,7 +116,7 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-    target_column : Hashable
+    target_column : str
         The name of the column to apply Tukey's fences on.
     fence : Literal['inner', 'outer'], default='outer'
         Determines whether to use the inner fence (1.5 * IQR) or the outer fence (3.0 * IQR).
@@ -79,17 +131,19 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
         The upper bound for clipping using the inner fence (Q3 + 1.5 * IQR).
     outer_high : Optional[float]
         The upper bound for clipping using the outer fence (Q3 + 3.0 * IQR).
-
-    Examples
-    --------
-    >>> import pandas as pd
-    >>> df = pd.DataFrame({'values': [10, 15, 14, 20, 100, 5, 7]})
-    >>> tukey_transformer = CustomTukeyTransformer(target_column='values', fence='inner')
-    >>> transformed_df = tukey_transformer.fit_transform(df)
-    >>> transformed_df
     """
 
     def __init__(self, target_column: str, fence: Literal['inner', 'outer'] = 'outer') -> None:
+        """
+        Initialize the CustomTukeyTransformer.
+
+        Parameters
+        ----------
+        target_column : str
+            The name of the column to apply Tukey's fences to.
+        fence : {'inner', 'outer'}, default='outer'
+            Indicates whether to use the inner fence (1.5 * IQR) or the outer fence (3.0 * IQR).
+        """
         assert isinstance(target_column, str), f"{self.__class__.__name__} expected a string but got {type(target_column)}."
         assert fence in ['inner', 'outer'], f"{self.__class__.__name__} fence must be 'inner' or 'outer', got '{fence}'."
         self.target_column = target_column
@@ -100,6 +154,21 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
         self.outer_high: Optional[float] = None
     
     def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+        """
+        Compute Tukey's fences for the specified target column.
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+        y : Optional[Iterable], default=None
+            Ignored. Present for compatibility with scikit-learn interface.
+
+        Returns
+        -------
+        Self
+            The fitted transformer.
+        """
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.fit expected DataFrame but got {type(X)}."
         assert self.target_column in X.columns, f"{self.__class__.__name__}.fit unknown column '{self.target_column}'."
         assert X[self.target_column].dtype in [np.float64, np.float32, np.int64], f"{self.__class__.__name__}.fit expected float column but got {X[self.target_column].dtype} instead."
@@ -117,6 +186,19 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
         return self
     
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Clip values in the target column according to the fences computed during fit().
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input DataFrame with values clipped based on selected Tukey fence.
+        """
         assert isinstance(X, pd.DataFrame), f"{self.__class__.__name__}.transform expected DataFrame but got {type(X)}."
         assert self.target_column in X.columns, f"{self.__class__.__name__}.transform unknown column '{self.target_column}'."
         assert (self.inner_low is not None and self.inner_high is not None) or (self.outer_low is not None and self.outer_high is not None), \
@@ -130,7 +212,21 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
         return X_
     
     def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> pd.DataFrame:
+        """
+        Fit to data, then transform it in one step. Combines fit() and transform().
+
+        Parameters
+        ----------
+        X : pandas.DataFrame
+            The input data containing the target column.
+        y : Optional[Iterable], default=None
+            Ignored. Present for compatibility with scikit-learn interface.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the input DataFrame with clipped values based on the chosen fence.
+        """
         self.fit(X, y)
         result: pd.DataFrame = self.transform(X)
         return result
-
