@@ -8,7 +8,7 @@ This pipeline preprocesses the SLICED s01e09 Playoffs 1 baseball dataset to prep
 
 ## Pipeline Diagram
 
-![Pipeline Screenshot](https://github.com/Sterling-Miller/CS-423/final-datasets/Baseball_Pipeline.png)
+<img width="853" alt="Baseball_Pipeline" src="https://github.com/user-attachments/assets/0dfd9857-4406-453d-8da1-451b027149b5" />
 
 ---
 
